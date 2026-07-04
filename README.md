@@ -1,120 +1,83 @@
-# dentist-API
+# Dentist API
 
-1. Create virtual environment
+The Dentist API is a robust backend system for a dental clinic, built with Django. It provides a comprehensive set of functionalities to manage various aspects of clinic operations.
 
-```sh
-conda create -n dentist python=3.12
-```
+[![Python Version](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/downloads/release/python-312/)
+[![Django Version](https://img.shields.io/badge/django-5.1.5-green.svg)](https://www.djangoproject.com/)
 
-2. Activate virtual environment
+## Features
 
-```sh
-conda activate dentist
-```
+- **User Roles and Permissions:** Differentiates between patient, dentist, and admin roles with appropriate access controls.
+- **Secure Authentication:** Implements JWT for token-based authentication and bcrypt for password hashing.
+- **Comprehensive Patient Data:** Stores detailed patient information, including medical history and personal details.
+- **Clinical Workflow Management:** Manages patient complaints, diagnoses, treatments, and follow-up appointments.
+- **Prescription Generation:** Allows dentists to prescribe medications and treatments with dosage and duration.
+- **PDF Prescription Generation:** Creates downloadable PDF prescriptions for patients.
+- **WhatsApp Integration:** Includes basic setup for sending WhatsApp messages via an API.
+- **Background Task Processing:** Utilizes Celery for asynchronous task execution (e.g., sending WhatsApp messages).
 
-3. Install requirements
+## Tech Stack
 
-```sh
-pip install -r requirements.txt
-```
+- **Backend Framework:** Django
+- **Database:** PostgreSQL
+- **API:** Django REST framework
+- **Authentication:** JWT (PyJWT), bcrypt
+- **Task Queue:** Celery, django-celery-beat
+- **ORM:** Django ORM
+- **Libraries:** python-dotenv, psycopg2-binary, django-filter, markdown, django-cors-headers, django-extensions, requests, reportlab
+- **Languages:** Python
 
-4. Create database in postgres (via psql)
+## Setup
 
-```sql
-CREATE DATABASE dentist;
-```
+- Check out `SETUP.md`
 
-5. **Change .env.example to .env and add proper environment variables according to your setup**
+## API Reference 🔍
 
-6. Make migrations
+This API follows RESTful principles. Key endpoints include:
 
-```sh
-python manage.py makemigrations
-```
+- **Authentication (`/auth/`)**
+  - `POST /auth/signup/`: Patient signup.
+  - `POST /auth/login/`: Patient login.
+  - `POST /auth/password/`: Password reset/reprompt.
+  - `POST /auth/phonenumber/`: Change phonenumber.
 
-```sh
-python manage.py makemigrations authentication
-```
+- **Patient (`/p/`)**
+  - `GET /p/details/`: Get logged-in patient's details.
+  - `POST /p/details/`: Admin/Dentist register a new patient.
+  - `GET /p/medical_details/`: Get logged-in patient's medical details.
+  - `POST /p/medical_details/`: Admin/Dentist add/update patient's medical details.
+  - `GET /p/complaints/`: Get today's complaints (for dashboard).
+  - `POST /p/complaints/`: Register a new complaint.
+  - `GET /p/diagnosis/<complaint_id>/`: Get diagnoses for a complaint.
+  - `POST /p/diagnosis/`: Add a new diagnosis.
+  - `PUT /p/diagnosis/`: Update an existing diagnosis.
+  - `DELETE /p/diagnosis/delete/<id>/`: Delete a diagnosis.
+  - `GET /p/followup/`: Get today's followups.
+  - `GET /p/followup/<complaint_id>/`: Get all followups for a complaint.
+  - `GET /p/followup/<date>/`: Get followups for a specific date.
+  - `POST /p/followup/`: Add a new followup.
+  - `PUT /p/followup/`: Update a followup.
+  - `DELETE /p/followup/delete/<followup_id>/`: Delete a followup.
+  - `GET /p/prescription/<complaint_id>/<sitting>/`: Get prescriptions for a sitting.
+  - `POST /p/prescription/`: Add a patient prescription.
+  - `PUT /p/prescription/`: Update a patient prescription.
+  - `DELETE /p/prescription/delete/<patient_prescription_id>/`: Delete a patient prescription.
+  - `GET /p/prescription/pdf/<complaint_id>/<sitting>/`: Generate PDF prescription.
+  - `GET /p/bill/discount/<complaint_id>/`: Get discount for a complaint.
+  - `POST /p/bill/discount/`: Add/update discount.
+  - `POST /p/bill/consultation/`: Add consultation charge.
+  - `GET /p/history/<patient_id>/`: Get patient's history (by admin/dentist).
+  - `GET /p/history/`: Get logged-in patient's history.
+  - `GET /p/<phonenumber>/`: Search patients by phonenumber.
+  - `GET /p/<name>/`: Search patients by name.
+  - `GET /p/<phonenumber>/<name>/`: Search patients by phonenumber and name.
 
-```sh
-python manage.py makemigrations messaging
-```
-
-```sh
-python manage.py makemigrations doctor
-```
-
-```sh
-python manage.py makemigrations patient
-```
-
-7. Migrate
-
-```sh
-python manage.py migrate
-```
-
-```sh
-python manage.py migrate django_celery_beat
-```
-
-8. Create superuser
-
-```sh
-python manage.py createsuperuser
-```
-
-(don't set email, set a simple username and password)
-
-9. Populate tables
-
-```sh
-python manage.py populate_treatments
-```
-
-```sh
-python manage.py populate_prescriptions
-```
-
-10. Create roles
-
-```sh
-python manage.py runserver
-```
-
-- Go to `http://localhost:8000/admin`
-- Enter your superuser credentials from step 7
-- In the `Authentication` app add a doctor and admin
-- **STRICTLY** Keep password field empty for all the users
-
-## For testing whatsapp functionality (OPTIONAL for keeping development server online)
-
-1. Run Celery worker
-
-```sh
-celery -A dentistAPI worker --loglevel=info --pool=solo
-```
-
-2. Run Celery beat
-
-```sh
-celery -A dentistAPI beat --scheduler django_celery_beat.schedulers.DatabaseScheduler --loglevel=info
-```
-
-# dentist-UI
-
-1. Clone the frontend (get out of this directory)
-
-```sh
-git clone https://github.com/tejashriiii/dentistFrontend
-```
-
-2. Follow instructions from [here](https://github.com/tejashriiii/dentistFrontend)
-3. Set password for doctor and admin with the signup page
-4. Login as the admin
-5. Register the patient using registration form
-
-## Production steps (FOR DEPLOYMENT ONLY)
-
-- Replace`pyscopg2-binary` with the entire package built using the c libraries
-- Follow django's article and setup `httpd` and all
+- **Doctor (`/doc/`)**
+  - `GET /doc/treatment/`: Get all treatments.
+  - `POST /doc/treatment/`: Add a new treatment.
+  - `PUT /doc/treatment/<uuid:treatment_id>/`: Update a treatment.
+  - `DELETE /doc/treatment/<uuid:treatment_id>/`: Delete a treatment.
+  - `GET /doc/prescription/`: Get structured prescriptions.
+  - `POST /doc/prescription/`: Add a new prescription.
+  - `PUT /doc/prescription/<uuid:prescription_id>/`: Update a prescription.
+  - `DELETE /doc/prescription/<uuid:prescription_id>/`: Delete a prescription.
